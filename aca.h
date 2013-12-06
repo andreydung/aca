@@ -16,9 +16,11 @@ public:
 		ss=7;
 		beta=0.5;
 		maxw=4096;
+		minw=7;
 		niters_w=10;
 		niters_mrf=30;
 		wfactor=2;
+		prcnt=0.1;
 	};
 
 	Mat getkmeans(const Mat &in);
@@ -36,9 +38,9 @@ private:
 	vector<Vec3f> local_average(const Mat &in, const Mat &lev, int i, int j, int windim);
 	vector<Vec3f> global_average(const Mat &in, const Mat &lev);
 
-	int nlevels, maxw;
+	int nlevels, maxw, minw;
 	int niters_w, niters_mrf;
 	float ss;
-	float beta;
+	float beta, prcnt;
 	int wfactor;
 };

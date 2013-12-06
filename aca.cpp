@@ -244,77 +244,78 @@ vector<Mat> ACA::getlocav(const Mat& in, const Mat& lev, int win_dim)
 	return locav;
 }
 
-// Mat ACA::aca_seg(const Mat& in)
-// {
-// 	Mat lev = getkmeans(in);
+Mat ACA::aca_seg(const Mat& in)
+{
+	Mat lev = getkmeans(in);
 
-// 	int M=in.rows;
-// 	int N=in.cols;
+	int M=in.rows;
+	int N=in.cols;
 
-// 	mcount_mrf=(int)((M+N)*prcnt/2);
+	int n;
+	int win_dim;
+	float win_dim_fl;
+	int count_mrf;
+	int mcount_mrf=(int)((M+N)*prcnt/2);
 
-// 	if ((M<maxw) && (N<=maxw))	
-// 	{
-// 		win_dim = 0;	// denotes global averaging for slocavbl
-// 		for (int nw = 0; nw < niters_w; nw++)
-// 		{
-// 			vector<Mat> locav= getlocav(in, lev, win_dim);
-// 			for (int n = 0; n < niters_mrf; n++)
-// 			{
-// 				// calculate re-segmentation
-// 				int count_mrf = smrf(in, lev, locav);
-// 				printf("   n = %d: %d locations changed\n",n,count_mrf);
-// 				if (count_mrf < mcount_mrf) 
-// 					break;
-// 			}
+	if ((M<maxw) && (N<=maxw))	
+	{
+		win_dim = 0;	// denotes global averaging for slocavbl
+		for (int nw = 0; nw < niters_w; nw++)
+		{
+			vector<Mat> locav= getlocav(in, lev, win_dim);
+			for (n = 0; n < niters_mrf; n++)
+			{
+				// calculate re-segmentation
+				count_mrf = smrf(in, lev, locav);
+				cout<<count_mrf<<" locations changed\n";
+				if (count_mrf < mcount_mrf) 
+					break;
+			}
 
-// 			if (n==0) break;
-// 		}
+			if (n==0) break;
+		}
 
-// 		// update window size for local averaging
-// 		win_dim_fl = (float)maxw;
-// 		win_dim = (int)(win_dim_fl+0.5);
-// 		for (int k = 0; k< 30; k++)		// reduce window size by wfactor times until within image dimensions
-// 		{
-// 			if (win_dim >= hh || win_dim >= ww)
-// 			{
-// 				win_dim_fl /= wfactor;
-// 				win_dim = (int)(win_dim_fl+0.5);
-// 			}
-// 			else break;
-// 		}
-// 	}
-// 	else	// window size smaller than image size, no global averaging
-// 	{
-// 		win_dim = maxw;
-// 		win_dim_fl = (float)win_dim;
-// 	}
+		// update window size for local averaging
+		win_dim_fl = (float)maxw;
+		win_dim = (int)(win_dim_fl+0.5);
+		for (int k = 0; k< 30; k++)		// reduce window size by wfactor times until within image dimensions
+		{
+			if (win_dim >= M || win_dim >= N)
+			{
+				win_dim_fl /= wfactor;
+				win_dim = (int)(win_dim_fl+0.5);
+			}
+			else break;
+		}
+	}
+	else	// window size smaller than image size, no global averaging
+	{
+		win_dim = maxw;
+		win_dim_fl = (float)win_dim;
+	}
 
-// 	for (int m = 0; m < 30; m++)
-// 	{
-// 		if (win_dim < minw && win_dim < minw) break;
+	for (int m = 0; m < 30; m++)
+	{
+		if (win_dim < minw && win_dim < minw) break;
 
-// 		mincount = (int)(win_dim*mult);
-// 		if (mincount < 1) mincount = 1;
+		for (int nw = 0; nw < niters_w; nw++)	// niters_w -> max global averaging iters (default: 10)
+			{
+				
+				vector<Mat> locav= getlocav(in, lev, win_dim);
 
-// 		for (int nw = 0; nw < niters_w; nw++)	// niters_w -> max global averaging iters (default: 10)
-// 			{
-// 				printf("\nwindow: %d X %d\n",win_dim,win_dim);
-// 				vector<Mat> locav= getlocav(in, lev, win_dim);
+				for (n = 0; n < niters_mrf; n++)	// niters_mrf -> max re-segmentation iters (default: 30)
+				{
+					int count_mrf = smrf(in, lev, locav);
+					
+					if (count_mrf < mcount_mrf) break;
+				}
 
-// 				for (int n = 0; n < niters_mrf; n++)	// niters_mrf -> max re-segmentation iters (default: 30)
-// 				{
-// 					int count_mrf = smrf(in, lev, locav);
-// 					printf("   n = %d: %d locations changed\n",n,count_mrf);
-// 					if (count_mrf < mcount_mrf) break;
-// 				}
+				if (n==0) break;
+			}
 
-// 				if (n==0) break;
-// 			}
+		win_dim_fl /= wfactor;
+		win_dim = (int)(win_dim_fl + 0.5);
+	}
 
-// 		win_dim_fl /= wfactor;
-// 		win_dim = (int)(win_dim_fl + 0.5);
-// 	}
-
-// 	return lev;
-// }
+	return lev;
+}

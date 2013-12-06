@@ -391,8 +391,8 @@ TEST(LOCAL_AVERAGE)
 	int N=im.cols;
 	int nlevels=4;
 
-	Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
-	slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
+	// Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
+	// slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
 
 
 	im.convertTo(im, CV_32FC3);
