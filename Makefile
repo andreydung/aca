@@ -1,6 +1,6 @@
 # ExampleTests Project
-SRCS = main.cpp
-HDRS = 
+SRCS = aca.cpp ACATests.cpp
+HDRS = aca.h
 PROJ = aca
 
 # Remaining lines shouldn't need changing
@@ -31,5 +31,7 @@ $(APP): $(OBJS)
 	$(CC) $(CFLAGS) $< -o $@
 clean:
 	rm -f *.o $(APP)
+old:
+	g++ main.cpp `pkg-config --libs --cflags opencv` -o main	
 
 
