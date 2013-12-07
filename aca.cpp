@@ -247,6 +247,7 @@ vector<Mat> ACA::getlocav(const Mat& in, const Mat& lev, int win_dim)
 Mat ACA::aca_seg(const Mat& in)
 {
 	Mat lev = getkmeans(in);
+	in.convertTo(in, CV_32FC3);
 
 	int M=in.rows;
 	int N=in.cols;
@@ -319,3 +320,105 @@ Mat ACA::aca_seg(const Mat& in)
 
 	return lev;
 }
+
+
+// Vec3f ACA::bilinear(vector<Mat> locav,int k,int istep,int jstep,int i,int j)
+// {
+// 	int M=locav[0].rows;
+// 	int N=locav[0].cols;
+
+// 	int i1,i2,j1,j2;
+// 	float aa,bb,cc,dd;
+// 	float imgg,alpha,beeta,gamma,delta;
+
+// 	// get corner positions
+// 	i1 = i-i%istep;
+// 	i2 = i1+istep;
+// 	j1 = j-j%jstep;
+// 	j2 = j1+jstep;
+
+// 	// get mult. factors
+// 	alpha = (j-j1)/((float) jstep);
+// 	beeta = (i2-i)/((float) istep);
+// 	gamma = (j2-j)/((float) jstep);
+// 	delta = (i-i1)/((float) istep);
+
+// 	// correct for image boundaries
+// 	if (j2 >= N) j2 = j1;
+// 	if (i2 >= M) i2 = i1;
+
+// 	// get corner-point values to use for interpolation
+// 	aa = locav[k].at<Vec3f>(i1,j1);
+// 	bb = locav[k].at<Vec3f>(i1,j2);
+// 	cc = locav[k].at<Vec3f>(i2,j2);
+// 	dd = locav[k].at<Vec3f>(i2,j1);
+
+// 	// determine value to return
+// 	if (aa < 1000 && bb < 1000 && cc < 1000 && dd < 1000)
+// 	{
+// 		imgg = dd*delta*gamma;
+// 		imgg += aa*beeta*gamma;
+// 		imgg += bb*alpha*beeta;
+// 		imgg += cc*alpha*delta;
+// 		return imgg;
+// 	}
+// 	if (aa+bb+cc+dd >= 1000) return 1000;
+// 	if (aa+bb+cc+dd >= 3000)
+// 	{
+// 		if (aa < 1000 && (alpha <= .5 && delta <= .5)) return aa;
+// 		if (bb < 1000 && (gamma <= .5 && delta <= .5)) return bb;
+// 		if (cc < 1000 && (beeta <= .5 && gamma <= .5)) return cc;
+// 		if (dd < 1000 && (alpha <= .5 && beeta <= .5)) return dd;
+// 		else return 1000;
+// 	}
+// 	if (aa+bb+cc+dd >= 2000)
+// 	{
+// 		if (aa == 1000 && bb == 1000 && beeta <= .5)
+// 			return (cc*alpha+dd*gamma);
+// 		if (aa == 1000 && dd == 1000 && gamma <= .5)
+// 			return (bb*beeta+cc*delta);
+// 		if (bb == 1000 && cc == 1000 && alpha <= .5)
+// 			return (aa*beeta+dd*delta);
+// 		if (cc == 1000 && dd == 1000 && delta <= .5)
+// 			return (aa*gamma+bb*alpha);
+// 		if (aa == 1000 && cc == 1000 && alpha <= .5 && beeta <= .5)
+// 			return ((bb*alpha*beeta+dd*delta*gamma)/(alpha*beeta+delta*gamma));
+// 		if (aa == 1000 && cc == 1000 && gamma <= .5 && delta <= .5)
+// 			return ((bb*alpha*beeta+dd*delta*gamma)/(alpha*beeta+delta*gamma));
+// 		if (bb == 1000 && dd == 1000 && delta <= .5 && alpha <= .5)
+// 			return ((aa*beeta*gamma+cc*alpha*delta)/(beeta*gamma+alpha*delta));
+// 		if (bb == 1000 && dd == 1000 && beeta <= .5 && gamma <= .5)
+// 			return ((aa*beeta*gamma+cc*alpha*delta)/(beeta*gamma+alpha*delta));
+// 		else return 1000;
+// 	}
+// 	if (aa == 1000 && (alpha >= .5 || delta >= .5))
+// 	{
+// 		imgg = dd*delta*gamma;
+// 		imgg += bb*alpha*beeta;
+// 		imgg += cc*alpha*delta;
+// 		return imgg/(delta*gamma+alpha*beeta+alpha*delta);
+// 	}
+// 	if (bb == 1000 && (gamma >= .5 || delta >= .5))
+// 	{
+// 		imgg = dd*delta*gamma;
+// 		imgg += aa*beeta*gamma;
+// 		imgg += cc*alpha*delta;
+// 		return imgg/(delta*gamma+alpha*delta+beeta*gamma);
+// 	}
+// 	if (cc == 1000 && (gamma >= .5 || beeta >= .5))
+// 	{
+// 		imgg = dd*delta*gamma;
+// 		imgg += aa*beeta*gamma;
+// 		imgg += bb*alpha*beeta;
+// 		return imgg/(delta*gamma+alpha*beeta+beeta*gamma);
+// 	}
+// 	if (dd == 1000 && (alpha >= .5 || beeta >= .5))
+// 	{
+// 		imgg = aa*beeta*gamma;
+// 		imgg += bb*alpha*beeta;
+// 		imgg += cc*alpha*delta;
+// 		return imgg/(alpha*beeta+alpha*delta+beeta*gamma);
+// 	}
+
+// 	return 1000;
+// }

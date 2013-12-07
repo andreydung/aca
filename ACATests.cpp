@@ -41,23 +41,6 @@ string type2str(int type) {
 // 	cout<<out.channels()<<"\n";
 // }
 
-// TEST(global_average)
-// {
-// 	ACA a;
-// 	Mat im = imread("fox.jpg",CV_LOAD_IMAGE_COLOR);
-	
-//   Mat lev=a.getkmeans(im);
-//   Mat out=a.global_average(im, lev);
-
-//   lev.convertTo(lev,CV_8U);
-//   imshow("level",lev*30);
-//   imwrite("lev.png",lev*30);
-
-//   out.convertTo(out,CV_8U);
-// 	imshow("global", out);
-//   imwrite("out.png",out);
-// 	waitKey(0);
-// }
 void glb_av(Mat& aver, Mat& lev, Mat& obs, int hh, int ww, int nlevels)
 {
 
@@ -308,77 +291,37 @@ float bilinear(Mat& locav,int k,int c,int istep,int jstep,int hh,int ww,int i,in
 	return 1000;
 }
 
-// TEST(average)
-// {
-// 	cout<<"================== TEST AVERAGE ================================\n";
-// 	ACA a;
+TEST(GLOBAL_AVERAGE)
+{
+	ACA a;
+	Mat im = imread("fox.jpg");
+	int M=im.rows;
+	int N=im.cols;
+	int nlevels=4;
 
-// 	Mat im = imread("fox.jpg");
-// 	Mat lev = a.getkmeans(im);
-// 	im.convertTo(im, CV_32FC3);
+	Mat lev = a.getkmeans(im);
+	Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
+	slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
+
+	im.convertTo(im, CV_32F);	
+	vector<Mat> mylocav=a.getlocav(im, lev, 0);
 	
-// 	int M=im.rows;
-// 	int N=im.cols;
-// 	int nlevels=4;
-	
-// 	Mat aver = Mat::zeros(3,nlevels,CV_32F);
-// 	glb_av(aver,lev,im,M,N,4);
-// 	cout<<aver;
-// 	cout<<"\n";
+	for (int i=0; i<nlevels; i++)
+	{
+		vector<Mat> channels(3);
+		split(mylocav[i], channels);
 
-// 	cout<<"New results\n";
+		for (int j=0; j<3; j++)
+		{
+			Mat oldmat = locav(Rect(j*N, i*M, N, M));
+			Mat newmat=channels[j];
 
-	
-// 	vector<Vec3f> avers=a.global_average(im, lev);
-// 	cout<<avers[0]<<"\n";
-// 	cout<<avers[1]<<"\n";
-// 	cout<<avers[2]<<"\n";
-// 	cout<<avers[3]<<"\n";
-
-// }
-
-
-// TEST(locav)
-// {
-// 	cout<<"================== TEST LOCAV ================================\n";
-// 	// Test global average
-// 	ACA a;
-
-// 	Mat im = imread("fox.jpg");
-// 	Mat lev = a.getkmeans(im);
-
-// 	int M=im.rows;
-// 	int N=im.cols;
-// 	int nlevels=4;
-
-// 	Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
-// 	slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
-
-// 	cout<<locav.at<float>(0,0)<<" ";
-// 	cout<<locav.at<float>(0,N)<<" ";
-// 	cout<<locav.at<float>(0,2*N)<<" ";
-
-// 	cout<<"\n";
-// 	cout<<locav.at<float>(M,0)<<" ";
-// 	cout<<locav.at<float>(M,N)<<" ";
-// 	cout<<locav.at<float>(M,2*N)<<" ";
-
-// 	cout<<"\n";
-// 	cout<<locav.at<float>(2*M,0)<<" ";
-// 	cout<<locav.at<float>(2*M,N)<<" ";
-// 	cout<<locav.at<float>(2*M,2*N)<<" ";
-
-
-// 	cout<<"\nNew result\n";
-// 	im.convertTo(im, CV_32FC3);
-// 	vector<Mat> mylocav= a.getlocav(im, lev, 0);
-
-// 	cout<<mylocav[0].at<Vec3f>(0.0);
-// 	cout<<mylocav[1].at<Vec3f>(0.0);
-// 	cout<<mylocav[2].at<Vec3f>(0.0);
-// 	cout<<mylocav[3].at<Vec3f>(0.0);
-
-// }
+			for (int k=0; k<M; k++)
+				for( int m=0; m<N; m++)
+					CHECK_EQUAL(0,int(oldmat.at<float>(k,m)-newmat.at<float>(k,m)));
+		}
+	}
+}
 
 TEST(LOCAL_AVERAGE)
 {
@@ -391,15 +334,22 @@ TEST(LOCAL_AVERAGE)
 	int N=im.cols;
 	int nlevels=4;
 
-	// Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
-	// slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
-
+	Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
+	slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
 
 	im.convertTo(im, CV_32FC3);
 	vector<Mat> mylocav= a.getlocav(im, lev, 100);
 
 }
 
+// TEST(ACA_SEG)
+// {
+// 	ACA a;
+// 	Mat im=imread("fox.jpg");
+
+// 	Mat out = a.aca_seg(im);
+
+// }
 
 int main()
 {
