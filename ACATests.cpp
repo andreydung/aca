@@ -367,14 +367,21 @@ float bilinear(Mat& locav,int k,int c,int istep,int jstep,int hh,int ww,int i,in
 // 	}
 // }
 
-// TEST(ACA_SEG)
-// {
-// 	ACA a;
-// 	Mat im=imread("fox.jpg");
+TEST(ACA_SEG)
+{
+	ACA a;
+	Mat im=imread("fox.jpg");
 
-// 	Mat out = a.aca_seg(im);
+	im.convertTo(im, CV_32F);
+	Mat lev=a.getkmeans(im);
+	vector<Mat> locav=a.getlocav(im, lev, 0);
+	
+	cout<<a.smrf(im, lev, locav)<<"\n";
+	cout<<a.smrf(im, lev, locav)<<"\n";
+	cout<<a.smrf(im, lev, locav)<<"\n";
+	// a.aca_seg(im);
+}
 
-// }
 
 int main()
 {

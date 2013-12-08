@@ -1,5 +1,10 @@
 #include "aca.h"
 
+int const ACA::NITERS_WINDOW=10;
+int const ACA::NITERS_MRF=30;
+int const ACA::MAXW = 4096;
+int const ACA::MINW = 7;
+
 Mat ACA::getkmeans(const Mat &in)
 {
 	Mat label;
@@ -183,6 +188,7 @@ bool ACA::resegment(const Mat& in, Mat& lev, const vector<Mat>& locav, int i, in
 
 int ACA::smrf(const Mat& in, Mat& lev, const vector<Mat>& locav)
 {
+	cout<<"Here";
 	int M=in.rows;
 	int N=in.cols;
 
@@ -296,13 +302,13 @@ Vec3f ACA::bilinear(Mat locav, int istep,int jstep,int i,int j)
 	return imgg;
 }
 
-Mat ACA::aca_seg(const Mat& in)
+Mat ACA::aca_seg(Mat in)
 {
-	Mat lev = getkmeans(in);
-	in.convertTo(in, CV_32FC3);
-
 	int M=in.rows;
 	int N=in.cols;
+
+	Mat lev = getkmeans(in);
+	in.convertTo(in, CV_32F);
 
 	int n;
 	int win_dim;
@@ -310,15 +316,16 @@ Mat ACA::aca_seg(const Mat& in)
 	int count_mrf;
 	int mcount_mrf=(int)((M+N)*prcnt/2);
 
-	if ((M<maxw) && (N<=maxw))	
+	if ((M<MAXW) && (N<=MAXW))	
 	{
-		win_dim = 0;	// denotes global averaging for slocavbl
-		for (int nw = 0; nw < niters_w; nw++)
+		
+		for (int nw = 0; nw < NITERS_WINDOW; nw++)
 		{
-			vector<Mat> locav= getlocav(in, lev, win_dim);
-			for (n = 0; n < niters_mrf; n++)
+			vector<Mat> locav= getlocav(in, lev, 0);
+			for (n = 0; n < NITERS_MRF; n++)
 			{
 				// calculate re-segmentation
+				cout<<"Here"<<n<<"\n";
 				count_mrf = smrf(in, lev, locav);
 				cout<<count_mrf<<" locations changed\n";
 				if (count_mrf < mcount_mrf) 
@@ -329,9 +336,11 @@ Mat ACA::aca_seg(const Mat& in)
 		}
 
 		// update window size for local averaging
-		win_dim_fl = (float)maxw;
+		win_dim_fl = (float) MAXW;
 		win_dim = (int)(win_dim_fl+0.5);
-		for (int k = 0; k< 30; k++)		// reduce window size by wfactor times until within image dimensions
+
+		// reduce window size by wfactor times until within image dimensions
+		for (int k = 0; k< 30; k++)		
 		{
 			if (win_dim >= M || win_dim >= N)
 			{
@@ -343,32 +352,32 @@ Mat ACA::aca_seg(const Mat& in)
 	}
 	else	// window size smaller than image size, no global averaging
 	{
-		win_dim = maxw;
+		win_dim = MAXW;
 		win_dim_fl = (float)win_dim;
 	}
 
-	for (int m = 0; m < 30; m++)
-	{
-		if (win_dim < minw && win_dim < minw) break;
+	// for (int m = 0; m < 30; m++)
+	// {
+	// 	if (win_dim < MINW && win_dim < MINW) break;
 
-		for (int nw = 0; nw < niters_w; nw++)	// niters_w -> max global averaging iters (default: 10)
-			{
+	// 	for (int nw = 0; nw < NITERS_WINDOW; nw++)	// niters_w -> max global averaging iters (default: 10)
+	// 		{
 				
-				vector<Mat> locav= getlocav(in, lev, win_dim);
+	// 			vector<Mat> locav= getlocav(in, lev, win_dim);
 
-				for (n = 0; n < niters_mrf; n++)	// niters_mrf -> max re-segmentation iters (default: 30)
-				{
-					int count_mrf = smrf(in, lev, locav);
+	// 			for (n = 0; n < NITERS_MRF; n++)	// niters_mrf -> max re-segmentation iters (default: 30)
+	// 			{
+	// 				int count_mrf = smrf(in, lev, locav);
 					
-					if (count_mrf < mcount_mrf) break;
-				}
+	// 				if (count_mrf < mcount_mrf) break;
+	// 			}
 
-				if (n==0) break;
-			}
+	// 			if (n==0) break;
+	// 		}
 
-		win_dim_fl /= wfactor;
-		win_dim = (int)(win_dim_fl + 0.5);
-	}
+	// 	win_dim_fl /= wfactor;
+	// 	win_dim = (int)(win_dim_fl + 0.5);
+	// }
 
 	return lev;
 }

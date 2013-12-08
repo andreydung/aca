@@ -9,29 +9,30 @@ using namespace std;
 class ACA
 {
 public:
+	static int const NITERS_WINDOW;
+	static int const NITERS_MRF;
+	static int const MAXW;
+	static int const MINW;
+
 	ACA()
 	{
 		// ACA parameters
 		nlevels=4;
 		ss=7;
 		beta=0.5;
-		maxw=4096;
-		minw=7;
-		niters_w=10;
-		niters_mrf=30;
 		wfactor=2;
 		prcnt=0.1;
 	};
 
 	Mat getkmeans(const Mat &in);
-	Mat aca_seg(const Mat& in);
+	Mat aca_seg(Mat in);
 
 	vector<Mat> getlocav(const Mat& in, const Mat& lev, int win_dim);	
 
 	int smrf(const Mat& in, Mat& lev, const vector<Mat>& locav);
 	bool resegment(const Mat& in, Mat& lev, const vector<Mat>& locav, int i, int j);
 	Vec3f bilinear(Mat locav, int istep,int jstep,int i,int j);
-	
+
 private:
 	int s_beta(int pixlev, const Mat& lev, int i, int j);
 	float energy(int pixlev, const Mat &in, const Mat &lev, const vector<Mat> &locav, int i, int j);
@@ -39,8 +40,7 @@ private:
 	vector<Vec3f> local_average(const Mat &in, const Mat &lev, int i, int j, int windim);
 	vector<Vec3f> global_average(const Mat &in, const Mat &lev);
 
-	int nlevels, maxw, minw;
-	int niters_w, niters_mrf;
+	int nlevels;
 	float ss;
 	float beta, prcnt;
 	int wfactor;
