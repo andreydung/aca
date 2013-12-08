@@ -188,7 +188,6 @@ bool ACA::resegment(const Mat& in, Mat& lev, const vector<Mat>& locav, int i, in
 
 int ACA::smrf(const Mat& in, Mat& lev, const vector<Mat>& locav)
 {
-	cout<<"Here";
 	int M=in.rows;
 	int N=in.cols;
 
@@ -312,22 +311,21 @@ Mat ACA::aca_seg(Mat in)
 
 	int n;
 	int win_dim;
-	float win_dim_fl;
 	int count_mrf;
 	int mcount_mrf=(int)((M+N)*prcnt/2);
 
-	if ((M<MAXW) && (N<=MAXW))	
+	if ((M<=MAXW) && (N<=MAXW))	
 	{
-		
+		// Global averaging
 		for (int nw = 0; nw < NITERS_WINDOW; nw++)
 		{
 			vector<Mat> locav= getlocav(in, lev, 0);
+			cout<<"window: global average\n";
 			for (n = 0; n < NITERS_MRF; n++)
 			{
 				// calculate re-segmentation
-				cout<<"Here"<<n<<"\n";
 				count_mrf = smrf(in, lev, locav);
-				cout<<count_mrf<<" locations changed\n";
+				cout<<"    n= "<<n<<": "<<count_mrf<<" locations changed\n";
 				if (count_mrf < mcount_mrf) 
 					break;
 			}
@@ -336,48 +334,49 @@ Mat ACA::aca_seg(Mat in)
 		}
 
 		// update window size for local averaging
-		win_dim_fl = (float) MAXW;
-		win_dim = (int)(win_dim_fl+0.5);
+		win_dim = MAXW;
 
 		// reduce window size by wfactor times until within image dimensions
 		for (int k = 0; k< 30; k++)		
 		{
 			if (win_dim >= M || win_dim >= N)
 			{
-				win_dim_fl /= wfactor;
-				win_dim = (int)(win_dim_fl+0.5);
+				win_dim = int(win_dim/wfactor);
 			}
-			else break;
+			else 
+				break;
 		}
 	}
 	else	// window size smaller than image size, no global averaging
 	{
 		win_dim = MAXW;
-		win_dim_fl = (float)win_dim;
 	}
 
-	// for (int m = 0; m < 30; m++)
-	// {
-	// 	if (win_dim < MINW && win_dim < MINW) break;
+	for (int m = 0; m < 30; m++)
+	{
+		if (win_dim < MINW) 
+			break;
 
-	// 	for (int nw = 0; nw < NITERS_WINDOW; nw++)	// niters_w -> max global averaging iters (default: 10)
-	// 		{
-				
-	// 			vector<Mat> locav= getlocav(in, lev, win_dim);
+		for (int nw = 0; nw < NITERS_WINDOW; nw++)	// niters_w -> max global averaging iters (default: 10)
+		{	
+			vector<Mat> locav= getlocav(in, lev, win_dim);
+			cout<<"window: "<<win_dim<<"x"<<win_dim<<": \n";
 
-	// 			for (n = 0; n < NITERS_MRF; n++)	// niters_mrf -> max re-segmentation iters (default: 30)
-	// 			{
-	// 				int count_mrf = smrf(in, lev, locav);
-					
-	// 				if (count_mrf < mcount_mrf) break;
-	// 			}
+			for (n = 0; n < NITERS_MRF; n++)	// niters_mrf -> max re-segmentation iters (default: 30)
+			{
+				int count_mrf = smrf(in, lev, locav);
+				cout<<"    n= "<<n<<": "<<count_mrf<<" locations changed\n";
 
-	// 			if (n==0) break;
-	// 		}
+				if (count_mrf < mcount_mrf) 
+					break;
+			}
 
-	// 	win_dim_fl /= wfactor;
-	// 	win_dim = (int)(win_dim_fl + 0.5);
-	// }
+			if (n==0) 
+				break;
+		}
+
+		win_dim = int(win_dim/wfactor);
+	}
 
 	return lev;
 }
