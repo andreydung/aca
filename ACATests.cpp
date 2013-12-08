@@ -74,7 +74,7 @@ void glb_av(Mat& aver, Mat& lev, Mat& obs, int hh, int ww, int nlevels)
 			if (count.at<float>(c,k) < 1) 
 				aver.at<float>(c,k) = 1000.0;
 			else						  
-				aver.at<float>(c,k) /= (count.at<float>(c,k));
+				aver.at<float>(c,k) /= (count.at<float>(c,k)*255);
 		}
 	}
 }
@@ -121,7 +121,7 @@ void loc_av(Mat& aver,Mat& lev,Mat& obs,int hh,int ww,int nlevels,int win_dim2,i
 		for (int c = 0; c < 3; c++)		// over each color component
 		{
 			if (count.at<float>(c,k) < mincount) aver.at<float>(c,k) = 1000.0;
-			else								 aver.at<float>(c,k) /= (count.at<float>(c,k));
+			else								 aver.at<float>(c,k) /= (count.at<float>(c,k)*255);
 		}
 	}
 }
@@ -140,6 +140,7 @@ void slocavbl(Mat& lev,Mat& obs,Mat& locav,int hh,int ww,int nlevels,int win_dim
 	{
 		// compute global averages
 		glb_av(aver,lev,obs,hh,ww,nlevels);
+
 		// store global averages in locav
 		for (int i=0;i<hh;i++)
 			for (int j=0;j<ww;j++)
@@ -291,56 +292,80 @@ float bilinear(Mat& locav,int k,int c,int istep,int jstep,int hh,int ww,int i,in
 	return 1000;
 }
 
-TEST(GLOBAL_AVERAGE)
-{
-	ACA a;
-	Mat im = imread("fox.jpg");
-	int M=im.rows;
-	int N=im.cols;
-	int nlevels=4;
 
-	Mat lev = a.getkmeans(im);
-	Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
-	slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
+// TEST(GLOBAL_AVERAGE)
+// {
+// 	ACA a;
+// 	Mat im = imread("fox.jpg");
+// 	int M=im.rows;
+// 	int N=im.cols;
+// 	int nlevels=4;
 
-	im.convertTo(im, CV_32F);	
-	vector<Mat> mylocav=a.getlocav(im, lev, 0);
+// 	Mat lev = a.getkmeans(im);
+// 	Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
+// 	slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
+
+// 	im.convertTo(im, CV_32F);	
+// 	vector<Mat> mylocav=a.getlocav(im, lev, 0);
 	
-	for (int i=0; i<nlevels; i++)
-	{
-		vector<Mat> channels(3);
-		split(mylocav[i], channels);
+// 	for (int i=0; i<nlevels; i++)
+// 	{
+// 		vector<Mat> channels(3);
+// 		split(mylocav[i], channels);
 
-		for (int j=0; j<3; j++)
-		{
-			Mat oldmat = locav(Rect(j*N, i*M, N, M));
-			Mat newmat=channels[j];
+// 		for (int j=0; j<3; j++)
+// 		{
+// 			Mat oldmat = locav(Rect(j*N, i*M, N, M))*255;
+// 			Mat newmat=channels[j];
 
-			for (int k=0; k<M; k++)
-				for( int m=0; m<N; m++)
-					CHECK_EQUAL(0,int(oldmat.at<float>(k,m)-newmat.at<float>(k,m)));
-		}
-	}
-}
+// 			for (int k=0; k<M; k++)
+// 				for( int m=0; m<N; m++)
+// 					CHECK_EQUAL(0,int(oldmat.at<float>(k,m)-newmat.at<float>(k,m)));
+// 		}
+// 	}
+// }
 
-TEST(LOCAL_AVERAGE)
-{
-	ACA a;
+// TEST(LOCAL_AVERAGE)
+// {
+// 	ACA a;
+// 	Mat im = imread("fox.jpg");
+// 	int M=im.rows;
+// 	int N=im.cols;
+// 	int nlevels=4;
 
-	Mat im = imread("fox.jpg");
-	Mat lev = a.getkmeans(im);
+// 	int win_dim=128;
+// 	int win_dim2=64;
 
-	int M=im.rows;
-	int N=im.cols;
-	int nlevels=4;
+// 	Mat lev = a.getkmeans(im);
+// 	Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
+// 	slocavbl(lev, im, locav, im.rows, im.cols, 4, win_dim, 0);
 
-	Mat locav = Mat::zeros(M*nlevels, N*3,CV_32F);	
-	slocavbl(lev, im, locav, im.rows, im.cols, 4, 0, 0);
+// 	im.convertTo(im, CV_32F);	
+// 	vector<Mat> mylocav=a.getlocav(im, lev, win_dim);
+	
+// 	for (int i=0; i<nlevels; i++)
+// 	{
+// 		vector<Mat> channels(3);
+// 		split(mylocav[i], channels);
 
-	im.convertTo(im, CV_32FC3);
-	vector<Mat> mylocav= a.getlocav(im, lev, 100);
+// 		for (int j=0; j<3; j++)
+// 		{
+// 			Mat oldmat = locav(Rect(j*N, i*M, N, M));
+// 			Mat newmat=channels[j];
 
-}
+// 			for (int k=0; k<M; k++)
+// 				for( int m=0; m<N; m++)
+// 				{
+// 					float tmp = oldmat.at<float>(k,m);
+// 					if (tmp<10000)
+// 					{
+// 						cout<<255*tmp<<" "<<newmat.at<float>(k,m)<<"\n";
+// 						CHECK_EQUAL(0,int(255*tmp-newmat.at<float>(k,m)));
+// 					}
+// 				}
+// 		}
+// 	}
+// }
 
 // TEST(ACA_SEG)
 // {

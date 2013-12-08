@@ -30,6 +30,7 @@ public:
 
 	int smrf(const Mat& in, Mat& lev, const vector<Mat>& locav);
 	bool resegment(const Mat& in, Mat& lev, const vector<Mat>& locav, int i, int j);
+	Vec3f bilinear(Mat locav, int istep,int jstep,int i,int j);
 	
 private:
 	int s_beta(int pixlev, const Mat& lev, int i, int j);

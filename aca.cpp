@@ -38,7 +38,7 @@ vector<Vec3f> ACA::global_average(const Mat &in, const Mat &lev)
 	return average;
 }
 
-vector<Vec3f> ACA::local_average(const Mat &in, const Mat &lev, int i, int j, int win_dim)
+vector<Vec3f> ACA::local_average(const Mat &in, const Mat &lev, int i, int j, int win_dim2)
 {
 	assert(in.type()==21); //CV_32FC3
 	assert(lev.type()==4); //CV_32S
@@ -47,19 +47,19 @@ vector<Vec3f> ACA::local_average(const Mat &in, const Mat &lev, int i, int j, in
 	int N=in.cols;
 
 	vector<float> count(nlevels,0);
-	vector<Vec3f> average(nlevels);
+	vector<Vec3f> average(nlevels, Vec3f(0,0,0));
 
 	// set boundary coordinates in image
-	int a = i-win_dim;
+	int a = i-win_dim2;
 	if(a < 0) 
 		a = 0;
-	int b = i+win_dim;
+	int b = i+win_dim2;
 	if(b > M-1) 
 		b=M-1;
-	int c = j-win_dim;
+	int c = j-win_dim2;
 	if(c < 0) 
 		c = 0;
-	int d = j+win_dim;
+	int d = j+win_dim2;
 	if(d > N-1) 
 		d = N-1;
 
@@ -75,8 +75,10 @@ vector<Vec3f> ACA::local_average(const Mat &in, const Mat &lev, int i, int j, in
 		}
 
 	for (int i=0; i<nlevels; i++)
-		average[i] /=count[i];
-
+	{
+		if (count[i]!=0)
+			average[i] /=count[i];
+	}
 	return average;
 }
 
@@ -212,7 +214,6 @@ vector<Mat> ACA::getlocav(const Mat& in, const Mat& lev, int win_dim)
 
 	if (win_dim==0)
 	{
-		cout<<"GLOBAL\n";
 		averages=global_average(in, lev);
 
 		for (int k=0; k<nlevels; k++)
@@ -230,6 +231,7 @@ vector<Mat> ACA::getlocav(const Mat& in, const Mat& lev, int win_dim)
 	{
 		for (int k=0; k<nlevels; k++)
 		{
+			
 			Mat tmp=Mat::zeros(M, N, CV_32FC3);
 			int win_dim2 = int(win_dim/2);
 			
@@ -249,7 +251,6 @@ vector<Mat> ACA::getlocav(const Mat& in, const Mat& lev, int win_dim)
 					if (j%win_dim2 == 0 && i%win_dim2 == 0) continue;
 					tmp.at<Vec3f>(i,j)=bilinear(tmp, win_dim2, win_dim2, i, j);
 				}
-
 			locav.push_back(tmp);
 
 		}
