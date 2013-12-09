@@ -1,5 +1,5 @@
 # ExampleTests Project
-SRCS = aca.cpp ACATests.cpp
+SRCS = aca.cpp main.cpp
 HDRS = aca.h
 PROJ = aca
 
@@ -33,5 +33,6 @@ clean:
 	rm -f *.o $(APP)
 old:
 	g++ main.cpp `pkg-config --libs --cflags opencv` -o main	
-
+wrap:
+	python setup.py build_ext --inplace
 
